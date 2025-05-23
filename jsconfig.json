@@ -1,0 +1,4 @@
+{
+  "include": ["../../headers/*.d.ts", "*.js"],
+  "exclude": ["build/*"],
+}
