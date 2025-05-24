@@ -1,5 +1,5 @@
 const { Config } = require("./config");
-const { dpmCmd, tabMenuListener, exec, recording, executing } = require("./macro");
+const { dpmCmd, tabMenuListener, exec, recording, executing, macroKeyListener, enableMouse } = require("./macro");
 const {
   getPlayerVantagePoint,
   goToVantagePoint,
@@ -11,17 +11,18 @@ const { getMapInfo, isDropperGame, nearPortal, log } = require("./utils");
 let currentMap = null;
 let justResetWithRedstone = false;
 let disregardPlayerPositionLookPacket = false;
+let tryRegularJumpIfAvoidPreJump = false;
 const playerJoinGameRegex = /[\w\d_]+ has joined \(\d+\/\d+\)\!/;
 
 const jump = (viaCommand = false) => {
   const callback = () => {
     const vantagePoint = getPlayerVantagePoint();
     if (!vantagePoint) return log("Couldn't find a vantage point", 0xc, !viaCommand);
-    log(`Jumping from ${vantagePoint.toUpperCase()} vantage point`, 0xf, !viaCommand);
-    const res = exec("run", currentMap, vantagePoint, false);
+    log(`Jumping from ${vantagePoint.dir.toUpperCase()} vantage point`, 0xf, !viaCommand);
+    const res = exec("run", currentMap, vantagePoint.dir, false);
     if (res === "re-aligned") {
       log("Automatically re-executing as this is out of macro recording context", 0xf, true);
-      exec("run", currentMap, vantagePoint, false);
+      exec("run", currentMap, vantagePoint.dir, false);
     }
   };
   const res = goToVantagePoint(callback, findNextClosestVantagePointWithMacrosSaved(currentMap) ?? null);
@@ -32,14 +33,44 @@ const jump = (viaCommand = false) => {
   }
 };
 
+const newGame = () => {
+  disregardPlayerPositionLookPacket = true;
+  executing.val = false;
+  recording.val = false;
+  Chat.say("/play arcade_dropper");
+  JavaWrapper.methodToJavaAsync(() => {
+    Time.sleep(3000);
+    disregardPlayerPositionLookPacket = false;
+  }).run();
+};
+
 const recvMessageListener = JsMacros.on(
   "RecvMessage",
   JavaWrapper.methodToJava((evt) => {
     const txt = evt.text.getStringStripFormatting();
-    if (txt === "DROP!" && Config.LOCAL.autoJump) {
+
+    if (txt.match(/^The door opens in 1 second!/) && Config.LOCAL.autoJump && Config.LOCAL.preJump) {
+      const vantagePoint = getPlayerVantagePoint();
+      if (!vantagePoint) {
+        tryRegularJumpIfAvoidPreJump = true;
+        return log(
+          "Avoiding a pre-jump as you are either not at a vantage point or are too close to the center.",
+          0xf,
+          true
+        );
+      }
+      const maxOffset = Math.max(...vantagePoint.pos.map(Math.abs));
+      if (maxOffset <= 2) return (tryRegularJumpIfAvoidPreJump = true);
+      JavaWrapper.methodToJavaAsync(() => {
+        Time.sleep(maxOffset === 3 ? 500 : 350); // kind of arbitrary
+        jump();
+      }).run();
+    } else if (txt === "DROP!" && (tryRegularJumpIfAvoidPreJump || (Config.LOCAL.autoJump && !Config.LOCAL.preJump))) {
+      tryRegularJumpIfAvoidPreJump &&= false;
       jump();
     } else if (txt.match(playerJoinGameRegex)) {
       currentMap = null;
+      tryRegularJumpIfAvoidPreJump = false;
     } else if (txt.match(/Drop to the bottom of the map and/)) {
       disregardPlayerPositionLookPacket = true;
       JavaWrapper.methodToJavaAsync(() => {
@@ -47,11 +78,7 @@ const recvMessageListener = JsMacros.on(
         disregardPlayerPositionLookPacket = false;
       }).run();
     } else if (txt.match(/^You finished all maps in /) && Config.LOCAL.autoPlay) {
-      disregardPlayerPositionLookPacket = true;
-      executing.val = false;
-      recording.val = false;
-      Chat.say("/play arcade_dropper");
-      disregardPlayerPositionLookPacket = false;
+      newGame();
     }
   })
 );
@@ -120,7 +147,7 @@ const keyListener = JsMacros.on(
 
 const mainCmd = Chat.getCommandManager()
   .createCommandBuilder("dp")
-  .executes(JavaWrapper.methodToJavaAsync(() => Chat.say("/play arcade_dropper")))
+  .executes(JavaWrapper.methodToJavaAsync(newGame))
   .literalArg("jump")
   .executes(JavaWrapper.methodToJavaAsync(jump))
   .or(0)
@@ -147,7 +174,7 @@ const mainCmd = Chat.getCommandManager()
     JavaWrapper.methodToJavaAsync(() => {
       const val = !Config.LOCAL.autoPlay;
       Config.set("autoPlay", val);
-      log(`Autoplay toggled to ${val}`);
+      log(`autoPlay toggled to ${val}`);
     })
   )
   .or(2)
@@ -156,7 +183,16 @@ const mainCmd = Chat.getCommandManager()
     JavaWrapper.methodToJavaAsync(() => {
       const val = !Config.LOCAL.autoJump;
       Config.set("autoJump", val);
-      log(`Autojump toggled to ${val}`);
+      log(`autoJump toggled to ${val}`);
+    })
+  )
+  .or(2)
+  .literalArg("preJump")
+  .executes(
+    JavaWrapper.methodToJavaAsync(() => {
+      const val = !Config.LOCAL.preJump;
+      Config.set("preJump", val);
+      log(`preJump toggled to ${val}`);
     })
   )
   .or(2)
@@ -179,10 +215,14 @@ event.stopListener = JavaWrapper.methodToJava(() => {
   recording.val = false;
 
   JsMacros.off(recvMessageListener);
-  JsMacros.off(tabMenuListener);
   JsMacros.off(tickListener);
   JsMacros.off(failListener);
   JsMacros.off(keyListener);
+
+  JsMacros.off(tabMenuListener);
+  JsMacros.off(macroKeyListener);
+
+  enableMouse();
   mainCmd.unregister();
   dpmCmd.unregister();
 });

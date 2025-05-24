@@ -317,13 +317,16 @@ const getPlayerVantagePoint = () => {
   const vantagePoints = getVantagePoints();
   const playerPos = JSON.stringify(getFlooredPlayerPos());
   let direction = null;
+  let position = null;
   for (const [dir, pos] of Object.entries(vantagePoints)) {
     if (playerPos === JSON.stringify(pos)) {
       direction = dir;
+      position = pos;
       break;
     }
   }
-  return direction;
+  if (!direction) return null;
+  return {dir: direction, pos: position};
 };
 
 const isInVantagePoint = () => {
@@ -351,4 +354,6 @@ module.exports = {
   isInVantagePoint,
   findNextClosestVantagePointWithMacrosSaved,
   baritoneSettings,
+  VANTAGE_POINT_OFFSET_MAP,
+  getVantagePoints
 };

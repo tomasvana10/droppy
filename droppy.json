@@ -1,5 +1,6 @@
 {
   "autoPlay": true,
   "autoJump": true,
+  "preJump": true,
   "verbose": true
 }

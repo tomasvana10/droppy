@@ -3,6 +3,7 @@ class Config {
   static _DEFAULT = {
     autoPlay: true,
     autoJump: true,
+    preJump: true,
     verbose: false,
   };
   static LOCAL = {};
