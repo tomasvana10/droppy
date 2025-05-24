@@ -57,7 +57,7 @@ const VANTAGE_POINT_OFFSET_MAP = {
   [__REST__]: [4, 0, 4],
 };
 
-const REQUIRED_NONAIR_NEIGHBOURS = {
+const ABSOLUTE_CENTER_NONAIR_NEIGHBOURS = {
   "Warportal": { corners: 0, edges: 0 },
   "Bird_Cage": { corners: 0, edges: 0 },
   [__REST__]: { corners: 2, edges: 1 },
@@ -66,6 +66,7 @@ const REQUIRED_NONAIR_NEIGHBOURS = {
 const ABSOLUTE_CENTER_SCAN_DISTANCE = {
   "Warportal": 5,
   "Bird_Cage": 5,
+  "Castle": 15,
   [__REST__]: 10,
 };
 
@@ -74,18 +75,25 @@ const CUSTOM_VANTAGE_POINT_RETRIEVAL_FUNCS = {
     // help me
     let blocks = getBlocks(0, "minecraft:torch");
     if (!blocks.length) blocks = getBlocks(1, "minecraft:torch");
-    if (!blocks.length) blocks = getBlocks(2, "minecraft:torch");
+    if (!blocks.length) blocks = getBlocks(-1, "minecraft:torch");
+    if (!blocks.length) blocks = getBlocks(-2, "minecraft:torch");
     const player = Player.getPlayer();
     const zAxes = new Set();
     const xAxis = Math.max(...blocks.map((block) => block.getX()));
     for (const block of blocks) zAxes.add(block.getZ());
-    const block = World.getBlock(
+    const block1 = World.getBlock(
       xAxis,
       blocks[0]?.getY(),
       [...zAxes].sort((a, b) => Math.abs(player.getZ() - a) - Math.abs(player.getZ() - b))[0]
     );
+    const block2 = World.getBlock(
+      xAxis,
+      blocks[0]?.getY(),
+      [...zAxes].sort((a, b) => Math.abs(player.getZ() - b) - Math.abs(player.getZ() - a))[0]
+    );
     return {
-      [block.getZ() === Math.max(...zAxes) ? "south" : "north"]: [block.getX() - 2, block.getY(), block.getZ()],
+      [block1.getZ() === Math.max(...zAxes) ? "south" : "north"]: [block1.getX() - 2, block1.getY(), block1.getZ()],
+      [block2.getZ() === Math.max(...zAxes) ? "south" : "north"]: [block2.getX() - 2, block2.getY(), block2.getZ()],
     };
   },
 };
@@ -158,7 +166,7 @@ const getBlocks = (yOffset, blockId = "minecraft:air") => {
 const getAbsoluteCenter = (yLevel = -1) => {
   const airBlocks = getBlocks(yLevel);
   const requiredNonAirNeighbours =
-    REQUIRED_NONAIR_NEIGHBOURS[getMapInfo().active] ?? REQUIRED_NONAIR_NEIGHBOURS[__REST__];
+    ABSOLUTE_CENTER_NONAIR_NEIGHBOURS[getMapInfo().active] ?? ABSOLUTE_CENTER_NONAIR_NEIGHBOURS[__REST__];
 
   let candidate = null;
   for (const block of airBlocks) {
