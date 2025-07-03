@@ -1,4 +1,4 @@
-const { getMapInfo, log } = require("./utils");
+const { getMapInfo, log, forcedActiveMap } = require("./utils");
 
 /*
 The majority of this file calculates where the player must jump from, as the absolute
@@ -326,7 +326,7 @@ const getPlayerVantagePoint = () => {
     }
   }
   if (!direction) return null;
-  return {dir: direction, pos: position};
+  return { dir: direction, pos: position };
 };
 
 const isInVantagePoint = () => {
@@ -355,5 +355,5 @@ module.exports = {
   findNextClosestVantagePointWithMacrosSaved,
   baritoneSettings,
   VANTAGE_POINT_OFFSET_MAP,
-  getVantagePoints
+  getVantagePoints,
 };

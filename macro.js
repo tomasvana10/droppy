@@ -73,7 +73,7 @@ const exec = (type, map = null, vantagePointDir = null, viaCommand = false) => {
 const record = (map, vantagePointDir) => {
   const player = Player.getPlayer();
 
-  log("Started recording macro. Press <ESC> to stop recording.");
+  log(`Started recording macro for ${map}/${vantagePointDir.toUpperCase()}. Press <ESC> to stop recording.`);
   recording.val = true;
 
   const inputs = [];
@@ -106,13 +106,13 @@ const run = (map, vantagePointDir, viaCommand = false) => {
       return log(`You have not saved any macros for ${map}/${vantagePointDir}.`, 0xc, !viaCommand);
     } else {
       const closest = findNextClosestVantagePointWithMacrosSaved(map, vantagePointDir);
-      if (closest === undefined) return log("Couldn't find a vantage point with macros.", 0xc, !viaCommand);
+      if (closest === undefined) return log("Macro runner: Couldn't find a vantage point with macros.", 0xc, !viaCommand);
       log("Pathing to closest vantage point with a macro.", 0xf, !viaCommand);
       return goToVantagePoint(() => exec("run", map, closest[0]), closest);
     }
   }
 
-  log("Running macro", 0xf, !viaCommand);
+  log(`Running macro for ${map}/${vantagePointDir.toUpperCase()}`, 0xf, !viaCommand);
   executing.val = true;
   disableMouse();
 
@@ -175,7 +175,7 @@ const dpmCmd = Chat.getCommandManager()
   .quotedStringArg("manualMapInput")
   .executes(
     JavaWrapper.methodToJavaAsync((ctx) => {
-      exec("record", ctx.getArg("manualMapInput").replaceAll('"', "").split(" ").join("_"), null, true);
+      exec("record", ctx.getArg("manualMapInput").replaceAll('"', "").replaceAll(" ", "_"), null, true);
     })
   )
   .wordArg("manualVantagePointInput")
@@ -184,7 +184,7 @@ const dpmCmd = Chat.getCommandManager()
     JavaWrapper.methodToJavaAsync((ctx) => {
       exec(
         "record",
-        ctx.getArg("manualMapInput").replaceAll('"', "").split(" ").join("_"),
+        ctx.getArg("manualMapInput").replaceAll('"', "").replaceAll(" ", "_"),
         ctx.getArg("manualVantagePointInput"),
         true
       );
@@ -200,7 +200,7 @@ const dpmCmd = Chat.getCommandManager()
   .quotedStringArg("manualMapInput")
   .executes(
     JavaWrapper.methodToJavaAsync((ctx) => {
-      exec("run", ctx.getArg("manualMapInput").replaceAll('"', "").split(" ").join("_"), null, true);
+      exec("run", ctx.getArg("manualMapInput").replaceAll('"', "").replaceAll(" ", "_"), null, true);
     })
   )
   .wordArg("manualVantagePointInput")
@@ -209,7 +209,7 @@ const dpmCmd = Chat.getCommandManager()
     JavaWrapper.methodToJavaAsync((ctx) => {
       exec(
         "run",
-        ctx.getArg("manualMapInput").replaceAll('"', "").split(" ").join("_"),
+        ctx.getArg("manualMapInput").replaceAll('"', "").replaceAll(" ", "_"),
         ctx.getArg("manualVantagePointInput"),
         true
       );
