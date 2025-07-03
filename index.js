@@ -137,10 +137,10 @@ const failListener = JsMacros.on(
     const oldPlayerPositionLookPacketCaptureTime = lastPlayerPositionLookPacketCaptureTime;
     lastPlayerPositionLookPacketCaptureTime = World.getTime();
     const mapInfo = getMapInfo();
-    Chat.log(
-      `disregard: ${disregardPlayerPositionLookPacket}, active: ${mapInfo.active}, isFirst: ${mapInfo.isFirstMap}, initialJumpComplete: ${initialJumpCompleted}, runningBlind: ${runningQuickJump}, next: ${mapInfo.next}`
-    );
-    Chat.log(`=${World.getTime()}=`);
+    // Chat.log(
+    //  `disregard: ${disregardPlayerPositionLookPacket}, active: ${mapInfo.active}, isFirst: ${mapInfo.isFirstMap}, initialJumpComplete: ${initialJumpCompleted}, runningBlind: ${runningQuickJump}, next: ${mapInfo.next}`
+    //);
+    // Chat.log(`=${World.getTime()}=`);
     if (
       Config.LOCAL.autoJump &&
       // I found that when the difference between the receive times of two of these packets (captured consecutively)
@@ -152,14 +152,14 @@ const failListener = JsMacros.on(
       !runningQuickJump &&
       mapInfo.next
     ) {
-      Chat.log("=ENTER=");
+      //Chat.log("=ENTER=");
       if (preventErroneousJump) return (preventErroneousJump = false);
-      Chat.log("=RUN=");
+      //Chat.log("=RUN=");
       Client.runOnMainThread(
         JavaWrapper.methodToJava(() => {
           runningQuickJump = true;
           forcedActiveMap.val = mapInfo.next;
-          Chat.log(`Setting forced active map to ${forcedActiveMap.val}`);
+          //Chat.log(`Setting forced active map to ${forcedActiveMap.val}`);
         })
       );
       JavaWrapper.methodToJavaAsync(() => {
