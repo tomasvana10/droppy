@@ -33,7 +33,8 @@ Dropper bot for hypixel
     3. Give the service a name.
     4. Click on the `./` to change the directory to the script. This can be done by pressing `Open Folder` and selecting to the `droppy` folder you downloaded from this repository.
     5. Select `index.js` as the service script.
-        > [!WARNING] Ensure you select the `JavaScript` version of `index` and not the `TypeScript` version.
+> [!WARNING]
+> Ensure you select the `JavaScript` version of `index` and not the `TypeScript` version.
     6. Enable and run the script by clicking on the two red buttons on the right of the service (`Disabled` -> `Enabled` and `Stopped` -> `Running`).
 
 9.  Enjoy the script.
@@ -45,7 +46,7 @@ If you wish to edit and build upon this script for whatever reason, follow these
 ### Main setup
 
 1. Install NPM [using this guide](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
-2. Open a terminal in the toplevel of the `mmhack` folder and run `npm install` to install the required dependencies.
+2. Open a terminal in the toplevel of the `droppy` folder and run `npm install` to install the required dependencies.
 3. Make your changes to `index.ts`, and compile the file using `tsc -b`.
 
 ### Autocompletion for the JSMacros libraries
